@@ -130,18 +130,28 @@ public class Main extends PluginBase implements Listener {
 
         String fillingInfo = "No game available...";
 
-        ServiceInfoSnapshot snapshot = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(this.fillingMb);
-        if(snapshot != null){
-            fillingInfo = this.fillingMb + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") +" " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/"+snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
-        }else{
-            this.fillingMb = null;
+        if( CloudNetDriver.getInstance() != null && CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null) {
+            mbCounter = 0;
+
+            for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
+                if (serviceInfoSnapshot.getName().contains("MicroBattle")) {
+                    mbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
+                }
+
+            }
+
+            ServiceInfoSnapshot snapshot = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(this.fillingMb);
+            if (snapshot != null) {
+                fillingInfo = this.fillingMb + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") + " " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/" + snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
+            } else {
+                this.fillingMb = null;
+            }
+
+
+            mbNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.AQUA + "Micro" + TextFormat.LIGHT_PURPLE + "Battle" + TextFormat.RESET + "\n"
+                    + TextFormat.GREEN + mbCounter + " players online" + "\n" + TextFormat.BOLD + "TAP TO JOIN!" +
+                    TextFormat.RESET + "\n" + fillingInfo);
         }
-
-
-
-        mbNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.AQUA + "Micro" + TextFormat.LIGHT_PURPLE + "Battle" + TextFormat.RESET + "\n"
-        + TextFormat.GREEN + mbCounter + " players online" + "\n" + TextFormat.BOLD + "TAP TO JOIN!" +
-                TextFormat.RESET + "\n" + fillingInfo);
     }
 
     public void refreshBbNpc(){
@@ -292,7 +302,7 @@ public class Main extends PluginBase implements Listener {
 
     @EventListener
     public void onCloudServiceInfoUpdateEvent(CloudServiceInfoUpdateEvent event){
-       if( CloudNetDriver.getInstance() != null){
+       if( CloudNetDriver.getInstance() != null &&  CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null){
            String name = event.getServiceInfo().getName();
            refreshBbNpc();
            refreshMbNpc();
@@ -312,14 +322,7 @@ public class Main extends PluginBase implements Listener {
                findNewBb();
            }
 
-           mbCounter = 0;
 
-           for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
-               if(serviceInfoSnapshot.getName().contains("MicroBattle")){
-                   mbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
-               }
-
-           }
 
             bbCounter = 0;
            for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
@@ -339,7 +342,7 @@ public class Main extends PluginBase implements Listener {
     public void findNewMb(){
 
         this.fillingMb = null;
-        if( CloudNetDriver.getInstance() != null) {
+        if( CloudNetDriver.getInstance() != null && CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null) {
             for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
                 if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("MicroBattle")) {
                     if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN")) {
@@ -355,7 +358,7 @@ public class Main extends PluginBase implements Listener {
 
     public void findNewBb(){
         this.fillingBb = null;
-        if( CloudNetDriver.getInstance() != null) {
+        if( CloudNetDriver.getInstance() != null && CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null) {
             for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
                 if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("BuildBattle")) {
                     if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN")) {
