@@ -1,0 +1,26 @@
+name: NukkitCloudnetNPC
+main: main.java.Main
+
+version: "1.0.0"
+api: ["1.0.0"]
+
+load: POSTWORLD
+author: Guillaume351
+description: Cookie Build NPC system
+
+
+commands:
+  joinmb:
+    description: Join a Microbattles game
+    usage: "/pos"
+    permission: nnpc.account.basic
+  joinbb:
+    description: Join a BuildBattle game
+    usage: "/pos"
+    permission: nnpc.account.basic
+
+
+permissions:
+  nnpc.account.basic:
+    description: "Allow the user to /pos"
+    default: true
