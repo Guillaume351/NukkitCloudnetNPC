@@ -3,7 +3,6 @@ package main.java;
 import cn.nukkit.Player;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
-import cn.nukkit.entity.EntityHuman;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.EventPriority;
@@ -14,18 +13,14 @@ import cn.nukkit.event.player.PlayerMoveEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.*;
-import cn.nukkit.network.protocol.PlayerSkinPacket;
 import cn.nukkit.network.protocol.ScriptCustomEventPacket;
 import cn.nukkit.plugin.PluginBase;
-import cn.nukkit.utils.SimpleConfig;
 import cn.nukkit.utils.TextFormat;
 import de.dytanic.cloudnet.driver.CloudNetDriver;
 import de.dytanic.cloudnet.driver.event.EventListener;
 import de.dytanic.cloudnet.driver.event.events.service.CloudServiceInfoUpdateEvent;
 import de.dytanic.cloudnet.driver.service.ServiceInfoSnapshot;
 import de.dytanic.cloudnet.ext.bridge.BridgeServiceProperty;
-import de.dytanic.cloudnet.ext.bridge.node.CloudNetBridgeModule;
-import main.java.entities.NPC_Human;
 import main.java.entities.NPC_IronGolem;
 import main.java.entities.NPC_Villager;
 
@@ -37,6 +32,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 
 public class Main extends PluginBase implements Listener {
 
@@ -60,20 +56,19 @@ public class Main extends PluginBase implements Listener {
         super.onEnable();
 
         // Registering the listeners
-     //   this.getServer().getPluginManager().registerEvent(CloudServiceInfoUpdateEvent);
+        //   this.getServer().getPluginManager().registerEvent(CloudServiceInfoUpdateEvent);
         this.getServer().getPluginManager().registerEvents(this, this);
-        this.getServer().getDefaultLevel().loadChunk(206,170);
+        // this.getServer().getDefaultLevel().loadChunk(206,170);
         CloudNetDriver.getInstance().getEventManager().registerListener(this);
-       // mbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(206.5,56,170.5), Item.get(Item.WOODEN_SWORD)));
+        // mbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(206.5,56,170.5), Item.get(Item.WOODEN_SWORD)));
         //       // bbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(206.5,56,164.5), Item.get(Item.PLANK)));
 
-        mbNpc = new NPC_IronGolem(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(206.5,56,170.5), Item.get(Item.WOODEN_SWORD)));
-        bbNpc = new NPC_Villager(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(206.5,56,164.5), Item.get(Item.PLANK)));
-        bbNpc.setNameTagAlwaysVisible(true);
-        mbNpc.setNameTagAlwaysVisible(true);
-        mbNpc.spawnToAll();
-        bbNpc.spawnToAll();
-
+//        mbNpc = new NPC_IronGolem(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(206.5,56,170.5), Item.get(Item.WOODEN_SWORD)));
+//        bbNpc = new NPC_Villager(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(206.5,56,164.5), Item.get(Item.PLANK)));
+//        bbNpc.setNameTagAlwaysVisible(true);
+//        mbNpc.setNameTagAlwaysVisible(true);
+//        mbNpc.spawnToAll();
+//        bbNpc.spawnToAll();
 
 
     }
@@ -129,7 +124,7 @@ public class Main extends PluginBase implements Listener {
     public void refreshMbNpc(){
 
         String fillingInfo = "No game available...";
-
+/*
         if( CloudNetDriver.getInstance() != null && CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null) {
             mbCounter = 0;
 
@@ -151,12 +146,12 @@ public class Main extends PluginBase implements Listener {
             mbNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.AQUA + "Micro" + TextFormat.LIGHT_PURPLE + "Battle" + TextFormat.RESET + "\n"
                     + TextFormat.GREEN + mbCounter + " players online" + "\n" + TextFormat.BOLD + "TAP TO JOIN!" +
                     TextFormat.RESET + "\n" + fillingInfo);
-        }
+        }*/
     }
 
     public void refreshBbNpc(){
         String fillingInfo = "No game available...";
-
+/*
         ServiceInfoSnapshot snapshot = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(this.fillingBb);
         if(snapshot != null){
             fillingInfo = this.fillingBb + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") +" " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/"+snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
@@ -166,7 +161,7 @@ public class Main extends PluginBase implements Listener {
 
         bbNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.AQUA + "Build" + TextFormat.LIGHT_PURPLE + "Battle" + TextFormat.RESET + "\n"
                 + TextFormat.GREEN + bbCounter + " players online" + "\n" + TextFormat.BOLD + "TAP TO JOIN!" +
-                TextFormat.RESET + "\n" + fillingInfo);
+                TextFormat.RESET + "\n" + fillingInfo);*/
     }
 
     @EventHandler(priority =  EventPriority.HIGHEST)
@@ -262,22 +257,24 @@ public class Main extends PluginBase implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(sender instanceof Player){
-            switch (command.getName()){
+            switch (command.getName()) {
                 case "joinmb":
-                    if(fillingMb != null){
+                    if (fillingMb != null) {
                         this.proxyTransfer((Player) sender, this.fillingMb);
-                    }else{
+                    } else {
                         ((Player) sender).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
                     }
-                    break;
+                    return true;
+
 
                 case "joinbb":
-                    if(fillingBb != null){
+                    if (fillingBb != null) {
                         this.proxyTransfer((Player) sender, this.fillingBb);
-                    }else{
+                    } else {
                         ((Player) sender).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
                     }
-                    break;
+                    return true;
+
                 default:
                     break;
             }
@@ -294,25 +291,26 @@ public class Main extends PluginBase implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event){
-        this.mbNpc.spawnTo(event.getPlayer());
-        this.bbNpc.spawnTo(event.getPlayer());
-        event.getPlayer().sendAllInventories();
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        // this.mbNpc.spawnTo(event.getPlayer());
+        // this.bbNpc.spawnTo(event.getPlayer());
+        //   event.getPlayer().sendAllInventories();
     }
 
     @EventListener
-    public void onCloudServiceInfoUpdateEvent(CloudServiceInfoUpdateEvent event){
-       if( CloudNetDriver.getInstance() != null &&  CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null){
-           String name = event.getServiceInfo().getName();
-           refreshBbNpc();
-           refreshMbNpc();
-           if(name.equals(fillingMb) && (!event.getServiceInfo().isConnected() || !event.getServiceInfo().getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN"))){
-               findNewMb();
-           }
+    public void onCloudServiceInfoUpdateEvent(CloudServiceInfoUpdateEvent event) {
+        Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
+        if (CloudNetDriver.getInstance() != null && services != null) {
+            String name = event.getServiceInfo().getName();
+            refreshBbNpc();
+            refreshMbNpc();
+            if (name.equals(fillingMb) && (!event.getServiceInfo().isConnected() || !event.getServiceInfo().getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN"))) {
+                findNewMb();
+            }
 
-           if(name.equals(fillingBb) && (!event.getServiceInfo().isConnected() || !event.getServiceInfo().getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN"))){
-               findNewBb();
-           }
+            if (name.equals(fillingBb) && (!event.getServiceInfo().isConnected() || !event.getServiceInfo().getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN"))) {
+                findNewBb();
+            }
 
            if(fillingMb == null){
                findNewMb();
@@ -325,11 +323,11 @@ public class Main extends PluginBase implements Listener {
 
 
             bbCounter = 0;
-           for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
-               if(serviceInfoSnapshot.getName().contains("BuildBattle")){
-                   bbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
-               }
-           }
+            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
+                if (serviceInfoSnapshot.getName().contains("BuildBattle")) {
+                    bbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
+                }
+            }
 
            /*
            lobbyCounter = 0;
@@ -339,11 +337,12 @@ public class Main extends PluginBase implements Listener {
        }
     }
 
-    public void findNewMb(){
+    public void findNewMb() {
 
         this.fillingMb = null;
-        if( CloudNetDriver.getInstance() != null && CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null) {
-            for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
+        Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
+        if (CloudNetDriver.getInstance() != null && services != null) {
+            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
                 if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("MicroBattle")) {
                     if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN")) {
                         fillingMb = serviceInfoSnapshot.getName();
@@ -356,10 +355,11 @@ public class Main extends PluginBase implements Listener {
 
     }
 
-    public void findNewBb(){
+    public void findNewBb() {
         this.fillingBb = null;
-        if( CloudNetDriver.getInstance() != null && CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null) {
-            for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
+        Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
+        if (CloudNetDriver.getInstance() != null && services != null) {
+            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
                 if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("BuildBattle")) {
                     if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN")) {
                         fillingBb = serviceInfoSnapshot.getName();
