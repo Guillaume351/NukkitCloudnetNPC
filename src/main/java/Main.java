@@ -8,6 +8,7 @@ import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.EventPriority;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
+import cn.nukkit.event.inventory.InventoryPickupItemEvent;
 import cn.nukkit.event.player.PlayerJoinEvent;
 import cn.nukkit.event.player.PlayerMoveEvent;
 import cn.nukkit.item.Item;
@@ -286,8 +287,13 @@ public class Main extends PluginBase implements Listener {
 
 
     @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event){
+    public void onPlayerMove(PlayerMoveEvent event) {
 
+    }
+
+    @EventHandler
+    public void onItemPickup(InventoryPickupItemEvent event) {
+        event.setCancelled();
     }
 
     @EventHandler
