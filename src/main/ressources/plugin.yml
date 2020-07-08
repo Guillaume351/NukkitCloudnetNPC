@@ -12,11 +12,15 @@ description: Cookie Build NPC system
 commands:
   joinmb:
     description: Join a Microbattles game
-    usage: "/pos"
+    usage: "/joinmb"
     permission: nnpc.account.basic
   joinbb:
     description: Join a BuildBattle game
-    usage: "/pos"
+    usage: "/joinbb"
+    permission: nnpc.account.basic
+  joinsw:
+    description: Join a SkyWars game
+    usage: "/joinsw"
     permission: nnpc.account.basic
 
 

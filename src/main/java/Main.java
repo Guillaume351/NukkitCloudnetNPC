@@ -22,6 +22,7 @@ import de.dytanic.cloudnet.driver.event.EventListener;
 import de.dytanic.cloudnet.driver.event.events.service.CloudServiceInfoUpdateEvent;
 import de.dytanic.cloudnet.driver.service.ServiceInfoSnapshot;
 import de.dytanic.cloudnet.ext.bridge.BridgeServiceProperty;
+import main.java.entities.NPC_Enderman;
 import main.java.entities.NPC_IronGolem;
 import main.java.entities.NPC_Villager;
 
@@ -45,10 +46,11 @@ public class Main extends PluginBase implements Listener {
 
     NPC_IronGolem mbNpc;
     NPC_Villager bbNpc;
-
+    NPC_Enderman swNpc;
 
     int mbCounter = 0;
     int bbCounter = 0;
+    int swCounter = 0;
     int lobbyCounter = 0;
 
 
@@ -70,8 +72,10 @@ public class Main extends PluginBase implements Listener {
 //        mbNpc.setNameTagAlwaysVisible(true);
 //        mbNpc.spawnToAll();
 //        bbNpc.spawnToAll();
-
-
+        this.getServer().getDefaultLevel().loadChunk(166, 170);
+        swNpc = new NPC_Enderman(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("SkyWars", this.getSkin("buildbattle"), new Vector3(170.5, 57, 174.5), Item.get(Item.ENDER_PEARL)));
+        swNpc.setNameTagAlwaysVisible(true);
+        swNpc.spawnToAll();
     }
 
     public CompoundTag createNBT(String name, Skin skin, Vector3 p, Item itemInHand){
@@ -165,27 +169,54 @@ public class Main extends PluginBase implements Listener {
                 TextFormat.RESET + "\n" + fillingInfo);*/
     }
 
-    @EventHandler(priority =  EventPriority.HIGHEST)
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event){
-            if(event.getDamager() instanceof Player && event.getEntity() == this.mbNpc){
-                event.setCancelled();
-                if(fillingMb != null){
-                    ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
-                    this.proxyTransfer((Player) event.getDamager(), this.fillingMb);
-                }else{
-                    ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
-                }
-            }
-            if(event.getDamager() instanceof Player && event.getEntity() == this.bbNpc){
-                event.setCancelled();
-                if(fillingBb != null){
-                    ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
-                    this.proxyTransfer((Player) event.getDamager(), this.fillingBb);
-                }else{
-                    ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
-                }
 
+    public void refreshSwNpc() {
+        String fillingInfo = "No game available...";
+
+        ServiceInfoSnapshot snapshot = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(this.fillingSw);
+        if (snapshot != null) {
+            fillingInfo = this.fillingSw + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") + " " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/" + snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
+        } else {
+            this.fillingSw = null;
+        }
+
+        swNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.DARK_BLUE + "Sky" + TextFormat.LIGHT_PURPLE + "Wars" + TextFormat.GREEN + " BETA" + TextFormat.RESET + "\n"
+                + TextFormat.GREEN + swCounter + " players online" + "\n" + TextFormat.BOLD + "TAP TO JOIN!" +
+                TextFormat.RESET + "\n" + fillingInfo);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player && event.getEntity() == this.mbNpc) {
+            event.setCancelled();
+            if (fillingMb != null) {
+                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
+                this.proxyTransfer((Player) event.getDamager(), this.fillingMb);
+            } else {
+                    ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
+                }
             }
+        if (event.getDamager() instanceof Player && event.getEntity() == this.bbNpc) {
+            event.setCancelled();
+            if (fillingBb != null) {
+                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
+                this.proxyTransfer((Player) event.getDamager(), this.fillingBb);
+            } else {
+                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
+            }
+
+        }
+
+        if (event.getDamager() instanceof Player && event.getEntity() == this.swNpc) {
+            event.setCancelled();
+            if (fillingBb != null) {
+                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
+                this.proxyTransfer((Player) event.getDamager(), this.fillingSw);
+            } else {
+                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
+            }
+
+        }
     }
     public boolean proxyTransfer(Player p, String destination) {
         ScriptCustomEventPacket pk = new ScriptCustomEventPacket();
@@ -276,6 +307,14 @@ public class Main extends PluginBase implements Listener {
                     }
                     return true;
 
+                case "joinsw":
+                    if (fillingSw != null) {
+                        this.proxyTransfer((Player) sender, this.fillingSw);
+                    } else {
+                        ((Player) sender).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
+                    }
+                    return true;
+
                 default:
                     break;
             }
@@ -299,7 +338,7 @@ public class Main extends PluginBase implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         // this.mbNpc.spawnTo(event.getPlayer());
-        // this.bbNpc.spawnTo(event.getPlayer());
+        this.swNpc.spawnTo(event.getPlayer());
         //   event.getPlayer().sendAllInventories();
     }
 
@@ -308,8 +347,7 @@ public class Main extends PluginBase implements Listener {
         Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
         if (CloudNetDriver.getInstance() != null && services != null) {
             String name = event.getServiceInfo().getName();
-            refreshBbNpc();
-            refreshMbNpc();
+
             if (name.equals(fillingMb) && (!event.getServiceInfo().isConnected() || !event.getServiceInfo().getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN"))) {
                 findNewMb();
             }
@@ -318,14 +356,21 @@ public class Main extends PluginBase implements Listener {
                 findNewBb();
             }
 
-           if(fillingMb == null){
-               findNewMb();
-           }
+            if (name.equals(fillingSw) && (!event.getServiceInfo().isConnected() || !event.getServiceInfo().getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN"))) {
+                findNewSw();
+            }
 
-           if(fillingBb == null){
-               findNewBb();
-           }
+            if (fillingMb == null) {
+                findNewMb();
+            }
 
+            if (fillingBb == null) {
+                findNewBb();
+            }
+
+            if (fillingSw == null) {
+                findNewSw();
+            }
 
 
             bbCounter = 0;
@@ -335,12 +380,23 @@ public class Main extends PluginBase implements Listener {
                 }
             }
 
+            swCounter = 0;
+            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
+                if (serviceInfoSnapshot.getName().contains("Skywars")) {
+                    swCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
+                }
+            }
+
+            refreshBbNpc();
+            refreshMbNpc();
+            refreshSwNpc();
+
            /*
            lobbyCounter = 0;
            for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices("Lobby")) {
                lobbyCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
            }*/
-       }
+        }
     }
 
     public void findNewMb() {
@@ -376,8 +432,19 @@ public class Main extends PluginBase implements Listener {
     }
 
 
-
-
+    public void findNewSw() {
+        this.fillingSw = null;
+        Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
+        if (CloudNetDriver.getInstance() != null && services != null) {
+            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
+                if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("Skywars")) {
+                    if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN")) {
+                        fillingSw = serviceInfoSnapshot.getName();
+                    }
+                }
+            }
+        }
+    }
 
 
 }
