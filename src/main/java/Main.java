@@ -361,6 +361,7 @@ public class Main extends PluginBase implements Listener {
         // this.mbNpc.spawnTo(event.getPlayer());
         this.swNpc.spawnTo(event.getPlayer());
         //   event.getPlayer().sendAllInventories();
+        event.getPlayer().getSkin().setTrusted(true);
     }
 
     @EventListener
