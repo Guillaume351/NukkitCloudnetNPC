@@ -70,7 +70,7 @@ public class Main extends PluginBase implements Listener {
         this.getServer().getDefaultLevel().loadChunk(166, 170);
         // mbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(206.5,56,170.5), Item.get(Item.WOODEN_SWORD)));
         //       // bbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(206.5,56,164.5), Item.get(Item.PLANK)));
-        mbNpc = new NPC_IronGolem(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(170.5, 56.5, 177.5), Item.get(Item.WOODEN_SWORD)));
+        mbNpc = new NPC_IronGolem(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(170.5, 57, 166.5), Item.get(Item.WOODEN_SWORD)));
         bbNpc = new NPC_Villager(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(172.5, 57, 176.5), Item.get(Item.PLANK)));
         bbNpc.setNameTagAlwaysVisible(true);
         mbNpc.setNameTagAlwaysVisible(true);
