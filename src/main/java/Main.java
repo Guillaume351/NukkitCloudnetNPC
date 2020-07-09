@@ -8,7 +8,10 @@ import cn.nukkit.event.EventHandler;
 import cn.nukkit.event.EventPriority;
 import cn.nukkit.event.Listener;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
+import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.inventory.InventoryPickupItemEvent;
+import cn.nukkit.event.level.ChunkUnloadEvent;
+import cn.nukkit.event.player.PlayerInteractEntityEvent;
 import cn.nukkit.event.player.PlayerJoinEvent;
 import cn.nukkit.event.player.PlayerMoveEvent;
 import cn.nukkit.item.Item;
@@ -63,17 +66,18 @@ public class Main extends PluginBase implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
         // this.getServer().getDefaultLevel().loadChunk(206,170);
         CloudNetDriver.getInstance().getEventManager().registerListener(this);
+
+        this.getServer().getDefaultLevel().loadChunk(166, 170);
         // mbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(206.5,56,170.5), Item.get(Item.WOODEN_SWORD)));
         //       // bbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(206.5,56,164.5), Item.get(Item.PLANK)));
+        mbNpc = new NPC_IronGolem(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(170.5, 56.5, 177.5), Item.get(Item.WOODEN_SWORD)));
+        bbNpc = new NPC_Villager(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(172.5, 57, 176.5), Item.get(Item.PLANK)));
+        bbNpc.setNameTagAlwaysVisible(true);
+        mbNpc.setNameTagAlwaysVisible(true);
+        mbNpc.spawnToAll();
+        bbNpc.spawnToAll();
 
-//        mbNpc = new NPC_IronGolem(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(206.5,56,170.5), Item.get(Item.WOODEN_SWORD)));
-//        bbNpc = new NPC_Villager(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(206.5,56,164.5), Item.get(Item.PLANK)));
-//        bbNpc.setNameTagAlwaysVisible(true);
-//        mbNpc.setNameTagAlwaysVisible(true);
-//        mbNpc.spawnToAll();
-//        bbNpc.spawnToAll();
-        this.getServer().getDefaultLevel().loadChunk(166, 170);
-        swNpc = new NPC_Enderman(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("SkyWars", this.getSkin("buildbattle"), new Vector3(170.5, 57, 174.5), Item.get(Item.ENDER_PEARL)));
+        swNpc = new NPC_Enderman(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("SkyWars", this.getSkin("buildbattle"), new Vector3(168.5, 57, 176.5), Item.get(Item.ENDER_PEARL)));
         swNpc.setNameTagAlwaysVisible(true);
         swNpc.spawnToAll();
     }
@@ -126,37 +130,24 @@ public class Main extends PluginBase implements Listener {
 
     }
 
-    public void refreshMbNpc(){
+    public void refreshMbNpc() {
 
         String fillingInfo = "No game available...";
-/*
-        if( CloudNetDriver.getInstance() != null && CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices() != null) {
-            mbCounter = 0;
+        ServiceInfoSnapshot snapshot = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(this.fillingMb);
+        if (snapshot != null) {
+            fillingInfo = this.fillingMb + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") + " " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/" + snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
+        } else {
+            this.fillingBb = null;
+        }
 
-            for (ServiceInfoSnapshot serviceInfoSnapshot : CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices()) {
-                if (serviceInfoSnapshot.getName().contains("MicroBattle")) {
-                    mbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
-                }
-
-            }
-
-            ServiceInfoSnapshot snapshot = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(this.fillingMb);
-            if (snapshot != null) {
-                fillingInfo = this.fillingMb + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") + " " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/" + snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
-            } else {
-                this.fillingMb = null;
-            }
-
-
-            mbNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.AQUA + "Micro" + TextFormat.LIGHT_PURPLE + "Battle" + TextFormat.RESET + "\n"
-                    + TextFormat.GREEN + mbCounter + " players online" + "\n" + TextFormat.BOLD + "TAP TO JOIN!" +
-                    TextFormat.RESET + "\n" + fillingInfo);
-        }*/
+        mbNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.AQUA + "Micro" + TextFormat.LIGHT_PURPLE + "Battle" + TextFormat.RESET + "\n"
+                + TextFormat.GREEN + mbCounter + " players online" + "\n" + TextFormat.BOLD + "TAP TO JOIN!" +
+                TextFormat.RESET + "\n" + fillingInfo);
     }
 
     public void refreshBbNpc(){
         String fillingInfo = "No game available...";
-/*
+
         ServiceInfoSnapshot snapshot = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServiceByName(this.fillingBb);
         if(snapshot != null){
             fillingInfo = this.fillingBb + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") +" " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/"+snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
@@ -166,7 +157,7 @@ public class Main extends PluginBase implements Listener {
 
         bbNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.AQUA + "Build" + TextFormat.LIGHT_PURPLE + "Battle" + TextFormat.RESET + "\n"
                 + TextFormat.GREEN + bbCounter + " players online" + "\n" + TextFormat.BOLD + "TAP TO JOIN!" +
-                TextFormat.RESET + "\n" + fillingInfo);*/
+                TextFormat.RESET + "\n" + fillingInfo);
     }
 
 
@@ -185,39 +176,67 @@ public class Main extends PluginBase implements Listener {
                 TextFormat.RESET + "\n" + fillingInfo);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player && event.getEntity() == this.mbNpc) {
-            event.setCancelled();
-            if (fillingMb != null) {
-                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
-                this.proxyTransfer((Player) event.getDamager(), this.fillingMb);
-            } else {
-                    ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
-                }
-            }
-        if (event.getDamager() instanceof Player && event.getEntity() == this.bbNpc) {
-            event.setCancelled();
-            if (fillingBb != null) {
-                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
-                this.proxyTransfer((Player) event.getDamager(), this.fillingBb);
-            } else {
-                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
-            }
 
-        }
-
-        if (event.getDamager() instanceof Player && event.getEntity() == this.swNpc) {
+    @EventHandler
+    public void onPlayerInteractWithEntity(PlayerInteractEntityEvent event) {
+        if (event.getEntity() == this.swNpc) {
             event.setCancelled();
-            if (fillingBb != null) {
-                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
-                this.proxyTransfer((Player) event.getDamager(), this.fillingSw);
+            if (fillingSw != null) {
+                ((Player) event.getPlayer()).sendMessage(TextFormat.GREEN + "> Transferring...");
+                this.proxyTransfer((Player) event.getPlayer(), this.fillingSw);
             } else {
-                ((Player) event.getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
+                ((Player) event.getPlayer()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
             }
 
         }
     }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onEntityDamageByEntity(EntityDamageEvent event) {
+        if (event instanceof EntityDamageByEntityEvent) {
+            if (((EntityDamageByEntityEvent) event).getDamager() instanceof Player && event.getEntity() == this.mbNpc) {
+                event.setCancelled();
+                if (fillingMb != null) {
+                    ((Player) ((EntityDamageByEntityEvent) event).getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
+                    this.proxyTransfer((Player) ((EntityDamageByEntityEvent) event).getDamager(), this.fillingMb);
+                } else {
+                    ((Player) ((EntityDamageByEntityEvent) event).getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
+                }
+            }
+            if (((EntityDamageByEntityEvent) event).getDamager() instanceof Player && event.getEntity() == this.bbNpc) {
+                event.setCancelled();
+                if (fillingBb != null) {
+                    ((Player) ((EntityDamageByEntityEvent) event).getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
+                    this.proxyTransfer((Player) ((EntityDamageByEntityEvent) event).getDamager(), this.fillingBb);
+                } else {
+                    ((Player) ((EntityDamageByEntityEvent) event).getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
+                }
+
+            }
+
+            if (((EntityDamageByEntityEvent) event).getDamager() instanceof Player && event.getEntity() == this.swNpc) {
+                event.setCancelled();
+                if (fillingSw != null) {
+                    ((Player) ((EntityDamageByEntityEvent) event).getDamager()).sendMessage(TextFormat.GREEN + "> Transferring...");
+                    this.proxyTransfer((Player) ((EntityDamageByEntityEvent) event).getDamager(), this.fillingSw);
+                } else {
+                    ((Player) ((EntityDamageByEntityEvent) event).getDamager()).sendMessage(TextFormat.GREEN + "> No game found! Please wait or contact @Guillaume351 on Twitter if the problem still persist!");
+                }
+
+            }
+
+        }
+
+    }
+
+    @EventHandler
+    public void onChunkUnload(ChunkUnloadEvent event) {
+        if (event.getChunk() == this.swNpc.getChunk() || event.getChunk() == this.mbNpc.getChunk()) {
+            event.setCancelled();
+        }
+    }
+
+
     public boolean proxyTransfer(Player p, String destination) {
         ScriptCustomEventPacket pk = new ScriptCustomEventPacket();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -327,7 +346,9 @@ public class Main extends PluginBase implements Listener {
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
+        if (event.getPlayer().distance(this.mbNpc.getPosition()) < 32) {
 
+        }
     }
 
     @EventHandler
@@ -384,6 +405,13 @@ public class Main extends PluginBase implements Listener {
             for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
                 if (serviceInfoSnapshot.getName().contains("Skywars")) {
                     swCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
+                }
+            }
+
+            mbCounter = 0;
+            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
+                if (serviceInfoSnapshot.getName().contains("MicroBattle")) {
+                    mbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
                 }
             }
 
