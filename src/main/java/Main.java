@@ -70,31 +70,31 @@ public class Main extends PluginBase implements Listener {
         this.getServer().getDefaultLevel().loadChunk(166, 170);
         // mbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(206.5,56,170.5), Item.get(Item.WOODEN_SWORD)));
         //       // bbNpc = new NPC_Human(this.getServer().getDefaultLevel().getChunk(206,170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(206.5,56,164.5), Item.get(Item.PLANK)));
-        mbNpc = new NPC_IronGolem(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(170.5, 57, 164.5), Item.get(Item.WOODEN_SWORD)));
-        bbNpc = new NPC_Villager(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(172.5, 57, 176.5), Item.get(Item.PLANK)));
+        mbNpc = new NPC_IronGolem(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("MicroBattle", this.getSkin("microbattle"), new Vector3(170.5, 57, 164.5), Item.get(Item.WOODEN_SWORD), 0f));
+        bbNpc = new NPC_Villager(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("BuildBattle", this.getSkin("buildbattle"), new Vector3(172.5, 57, 176.5), Item.get(Item.PLANK), 180f));
         bbNpc.setNameTagAlwaysVisible(true);
         mbNpc.setNameTagAlwaysVisible(true);
         mbNpc.spawnToAll();
         bbNpc.spawnToAll();
 
-        swNpc = new NPC_Enderman(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("SkyWars", this.getSkin("buildbattle"), new Vector3(168.5, 57, 176.5), Item.get(Item.ENDER_PEARL)));
+        swNpc = new NPC_Enderman(this.getServer().getDefaultLevel().getChunk(166, 170), this.createNBT("SkyWars", this.getSkin("buildbattle"), new Vector3(168.5, 57, 176.5), Item.get(Item.ENDER_PEARL), 180f));
         swNpc.setNameTagAlwaysVisible(true);
         swNpc.spawnToAll();
     }
 
-    public CompoundTag createNBT(String name, Skin skin, Vector3 p, Item itemInHand){
+    public CompoundTag createNBT(String name, Skin skin, Vector3 p, Item itemInHand, float rotation) {
 
-            CompoundTag nbt = new CompoundTag()
-                    .putList(new ListTag<>("Pos")
-                            .add(new DoubleTag("", p.x))
-                            .add(new DoubleTag("", p.y))
-                            .add(new DoubleTag("", p.z)))
-                    .putList(new ListTag<DoubleTag>("Motion")
-                            .add(new DoubleTag("", 0))
-                            .add(new DoubleTag("", 0))
-                            .add(new DoubleTag("", 0)))
+        CompoundTag nbt = new CompoundTag()
+                .putList(new ListTag<>("Pos")
+                        .add(new DoubleTag("", p.x))
+                        .add(new DoubleTag("", p.y))
+                        .add(new DoubleTag("", p.z)))
+                .putList(new ListTag<DoubleTag>("Motion")
+                        .add(new DoubleTag("", 0))
+                        .add(new DoubleTag("", 0))
+                        .add(new DoubleTag("", 0)))
                     .putList(new ListTag<FloatTag>("Rotation")
-                            .add(new FloatTag("", (float) 90))
+                            .add(new FloatTag("", (float) rotation))
                             .add(new FloatTag("", (float) 0)))
                     .putBoolean("Invulnerable", true)
                     .putString("NameTag", name)
