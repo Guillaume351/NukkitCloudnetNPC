@@ -21,6 +21,7 @@ import cn.nukkit.item.Item;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.*;
 import cn.nukkit.network.protocol.ScriptCustomEventPacket;
+import cn.nukkit.network.protocol.TransferPacket;
 import cn.nukkit.plugin.PluginBase;
 import cn.nukkit.utils.TextFormat;
 import de.dytanic.cloudnet.driver.CloudNetDriver;
@@ -92,40 +93,40 @@ public class Main extends PluginBase implements Listener {
                         .add(new DoubleTag("", 0))
                         .add(new DoubleTag("", 0))
                         .add(new DoubleTag("", 0)))
-                    .putList(new ListTag<FloatTag>("Rotation")
-                            .add(new FloatTag("", (float) rotation))
-                            .add(new FloatTag("", (float) 0)))
-                    .putBoolean("Invulnerable", true)
-                    .putString("NameTag", name)
-                    .putList(new ListTag<StringTag>("Commands"))
-                    .putList(new ListTag<StringTag>("PlayerCommands"))
-                    .putBoolean("npc", true)
-                    .putFloat("scale", (float) 1);
-            if (false) {//TODO : remove if
-                CompoundTag skinTag = new CompoundTag()
-                        .putByteArray("Data", skin.getSkinData().data)
-                        .putInt("SkinImageWidth", skin.getSkinData().width)
-                        .putInt("SkinImageHeight", skin.getSkinData().height)
-                        .putString("ModelId", skin.getSkinId())
-                        .putString("CapeId", skin.getCapeId())
-                        .putByteArray("CapeData", skin.getCapeData().data)
-                        .putInt("CapeImageWidth", skin.getCapeData().width)
-                        .putInt("CapeImageHeight", skin.getCapeData().height)
-                        .putByteArray("SkinResourcePatch", skin.getSkinResourcePatch().getBytes(StandardCharsets.UTF_8))
-                        .putByteArray("GeometryData", skin.getGeometryData().getBytes(StandardCharsets.UTF_8))
-                        .putByteArray("AnimationData", skin.getAnimationData().getBytes(StandardCharsets.UTF_8))
-                        .putBoolean("PremiumSkin", skin.isPremium())
-                        .putBoolean("PersonaSkin", skin.isPersona())
-                        .putBoolean("CapeOnClassicSkin", skin.isCapeOnClassic());
-                nbt.putCompound("Skin", skinTag);
-                nbt.putBoolean("ishuman", true);
-                nbt.putString("Item", itemInHand.getName());
-               // nbt.putString("Helmet", p.getInventory().getHelmet().getName());
-               // nbt.putString("Chestplate", p.getInventory().getChestplate().getName());
-               // nbt.putString("Leggings", p.getInventory().getLeggings().getName());
-                //nbt.putString("Boots", p.getInventory().getBoots().getName());*/
-            }
-            return nbt;
+                .putList(new ListTag<FloatTag>("Rotation")
+                        .add(new FloatTag("", (float) rotation))
+                        .add(new FloatTag("", (float) 0)))
+                .putBoolean("Invulnerable", true)
+                .putString("NameTag", name)
+                .putList(new ListTag<StringTag>("Commands"))
+                .putList(new ListTag<StringTag>("PlayerCommands"))
+                .putBoolean("npc", true)
+                .putFloat("scale", (float) 1);
+        if (false) {//TODO : remove if
+            CompoundTag skinTag = new CompoundTag()
+                    .putByteArray("Data", skin.getSkinData().data)
+                    .putInt("SkinImageWidth", skin.getSkinData().width)
+                    .putInt("SkinImageHeight", skin.getSkinData().height)
+                    .putString("ModelId", skin.getSkinId())
+                    .putString("CapeId", skin.getCapeId())
+                    .putByteArray("CapeData", skin.getCapeData().data)
+                    .putInt("CapeImageWidth", skin.getCapeData().width)
+                    .putInt("CapeImageHeight", skin.getCapeData().height)
+                    .putByteArray("SkinResourcePatch", skin.getSkinResourcePatch().getBytes(StandardCharsets.UTF_8))
+                    .putByteArray("GeometryData", skin.getGeometryData().getBytes(StandardCharsets.UTF_8))
+                    .putByteArray("AnimationData", skin.getAnimationData().getBytes(StandardCharsets.UTF_8))
+                    .putBoolean("PremiumSkin", skin.isPremium())
+                    .putBoolean("PersonaSkin", skin.isPersona())
+                    .putBoolean("CapeOnClassicSkin", skin.isCapeOnClassic());
+            nbt.putCompound("Skin", skinTag);
+            nbt.putBoolean("ishuman", true);
+            nbt.putString("Item", itemInHand.getName());
+            // nbt.putString("Helmet", p.getInventory().getHelmet().getName());
+            // nbt.putString("Chestplate", p.getInventory().getChestplate().getName());
+            // nbt.putString("Leggings", p.getInventory().getLeggings().getName());
+            //nbt.putString("Boots", p.getInventory().getBoots().getName());*/
+        }
+        return nbt;
 
     }
 
@@ -142,11 +143,11 @@ public class Main extends PluginBase implements Listener {
                 TextFormat.RESET + "\n" + fillingInfo);
     }
 
-    public void refreshBbNpc(){
+    public void refreshBbNpc() {
         String fillingInfo = "No game available...";
 
         ServiceInfoSnapshot snapshot = this.fillingBb;
-        if(snapshot != null){
+        if (snapshot != null) {
             fillingInfo = this.fillingBb.getName() + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") + " " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/" + snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
         }
 
@@ -234,12 +235,15 @@ public class Main extends PluginBase implements Listener {
         ScriptCustomEventPacket pk = new ScriptCustomEventPacket();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataOutputStream a = new DataOutputStream(out);
+        //ProxiedPlayer player = (ProxiedPlayer) p;
+        TransferPacket packet = new TransferPacket();
+        packet.address = destination;
         try {
-            a.writeUTF("Connect");
-            a.writeUTF(destination);
-            pk.eventName = "bungeecord:main";
-            pk.eventData = out.toByteArray();
-            p.dataPacket(pk);
+//            a.writeUTF("Connect");
+//            a.writeUTF(destination);
+//            pk.eventName = "bungeecord:main";
+//            pk.eventData = out.toByteArray();
+            p.dataPacket(packet);
         } catch (Exception e) {
             this.getServer().getLogger().warning("Error while transferring ( PLAYER: " + this.getName() + " | DEST: " + destination + " )");
             this.getServer().getLogger().logException(e);
@@ -249,18 +253,17 @@ public class Main extends PluginBase implements Listener {
     }
 
 
-
-    public Skin getSkin(String name){
+    public Skin getSkin(String name) {
         Skin skin = new Skin();
 
-       Path skinFolderPath = getDataFolder().toPath().resolve(name);
-       Path skinGeometryPath = skinFolderPath.resolve("geometry.json");
+        Path skinFolderPath = getDataFolder().toPath().resolve(name);
+        Path skinGeometryPath = skinFolderPath.resolve("geometry.json");
         Path skinPath = skinFolderPath.resolve("skin.png");
 
         if (Files.notExists(skinFolderPath) || !Files.isDirectory(skinFolderPath) ||
                 Files.notExists(skinGeometryPath) || !Files.isRegularFile(skinGeometryPath) ||
                 Files.notExists(skinPath) || !Files.isRegularFile(skinPath)) {
-           // throw new SkinChangeException("Skin does not exist");
+            // throw new SkinChangeException("Skin does not exist");
             this.getServer().getLogger().error("Skin not found ! " + name);
         }
 
@@ -276,16 +279,15 @@ public class Main extends PluginBase implements Listener {
             skin.setPremium(true);
 
 
-
             return skin;
         } catch (IOException e) {
-        //    throw new SkinChangeException("Error loading data", e);
+            //    throw new SkinChangeException("Error loading data", e);
             this.getServer().getLogger().error("Skin not loaded ! " + name);
         }
 
 
         return null;
-      //  Skin oldSkin = player.getSkin();
+        //  Skin oldSkin = player.getSkin();
 
 /*        player.setSkin(skin);
 
@@ -300,7 +302,7 @@ public class Main extends PluginBase implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(sender instanceof Player){
+        if (sender instanceof Player) {
             switch (command.getName()) {
                 case "joinmb":
                     if (fillingMb != null) {
@@ -435,7 +437,6 @@ public class Main extends PluginBase implements Listener {
                 }
             }
         }
-
 
 
     }
