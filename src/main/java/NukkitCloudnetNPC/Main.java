@@ -27,6 +27,7 @@ import cn.nukkit.utils.TextFormat;
 import de.dytanic.cloudnet.driver.CloudNetDriver;
 import de.dytanic.cloudnet.driver.event.EventListener;
 import de.dytanic.cloudnet.driver.event.events.service.CloudServiceInfoUpdateEvent;
+import de.dytanic.cloudnet.driver.event.events.service.CloudServiceStopEvent;
 import de.dytanic.cloudnet.driver.service.ServiceInfoSnapshot;
 import de.dytanic.cloudnet.ext.bridge.BridgeServiceProperty;
 
@@ -38,7 +39,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.HashMap;
 
 public class Main extends PluginBase implements Listener {
 
@@ -56,6 +57,7 @@ public class Main extends PluginBase implements Listener {
     int swCounter = 0;
     int lobbyCounter = 0;
 
+    HashMap<String, ServiceInfoSnapshot> services = new HashMap<>();
 
     @Override
     public void onEnable() {
@@ -162,7 +164,10 @@ public class Main extends PluginBase implements Listener {
 
         ServiceInfoSnapshot snapshot = this.fillingSw;
         if (snapshot != null) {
+            this.getLogger().warning("sw game found");
             fillingInfo = this.fillingSw.getName() + " " + snapshot.getProperty(BridgeServiceProperty.STATE).orElse("") + " " + snapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0) + "/" + snapshot.getProperty(BridgeServiceProperty.MAX_PLAYERS).orElse(0);
+        } else {
+            this.getLogger().warning("No sw game found");
         }
 
         swNpc.setNameTag(TextFormat.BOLD.toString() + TextFormat.DARK_BLUE + "Sky" + TextFormat.LIGHT_PURPLE + "Wars" + TextFormat.GREEN + " BETA" + TextFormat.RESET + "\n"
@@ -361,10 +366,18 @@ public class Main extends PluginBase implements Listener {
 
     @EventListener
     public void onCloudServiceInfoUpdateEvent(CloudServiceInfoUpdateEvent event) {
-        Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
-        if (CloudNetDriver.getInstance() != null && services != null && event.getServiceInfo() != null) {
+        //Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
+
+        if (event.getServiceInfo() == null) {
+            this.getLogger().warning("No service info ! ");
+        }
+
+        if (CloudNetDriver.getInstance() != null && event.getServiceInfo() != null) {
             String name = event.getServiceInfo().getName();
             ServiceInfoSnapshot server = event.getServiceInfo();
+
+
+            this.services.put(server.getName(), server);
 
             if (server == fillingMb && (!event.getServiceInfo().isConnected() || !event.getServiceInfo().getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN"))) {
                 findNewMb();
@@ -391,26 +404,31 @@ public class Main extends PluginBase implements Listener {
             }
 
 
-            bbCounter = 0;
-            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
-                if (serviceInfoSnapshot.getName().contains("BuildBattle")) {
-                    bbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
+            if (services == null) {
+                this.getLogger().error("Services not found ! ");
+            } else {
+                bbCounter = 0;
+                for (ServiceInfoSnapshot serviceInfoSnapshot : services.values()) {
+                    if (serviceInfoSnapshot.getName().contains("BuildBattle")) {
+                        bbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
+                    }
+                }
+
+                swCounter = 0;
+                for (ServiceInfoSnapshot serviceInfoSnapshot : services.values()) {
+                    if (serviceInfoSnapshot.getName().contains("Skywars")) {
+                        swCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
+                    }
+                }
+
+                mbCounter = 0;
+                for (ServiceInfoSnapshot serviceInfoSnapshot : services.values()) {
+                    if (serviceInfoSnapshot.getName().contains("MicroBattle")) {
+                        mbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
+                    }
                 }
             }
 
-            swCounter = 0;
-            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
-                if (serviceInfoSnapshot.getName().contains("Skywars")) {
-                    swCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
-                }
-            }
-
-            mbCounter = 0;
-            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
-                if (serviceInfoSnapshot.getName().contains("MicroBattle")) {
-                    mbCounter += serviceInfoSnapshot.getProperty(BridgeServiceProperty.ONLINE_COUNT).orElse(0);
-                }
-            }
 
             refreshBbNpc();
             refreshMbNpc();
@@ -427,14 +445,13 @@ public class Main extends PluginBase implements Listener {
     public void findNewMb() {
 
         this.fillingMb = null;
-        Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
-        if (CloudNetDriver.getInstance() != null && services != null) {
-            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
-                if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("MicroBattle")) {
-                    if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN")) {
-                        fillingMb = serviceInfoSnapshot;
-                    }
+        //Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getStartedCloudServices();
+        for (ServiceInfoSnapshot serviceInfoSnapshot : services.values()) {
+            if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("MicroBattle")) {
+                if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN") || serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("LOBBY")) {
+                    fillingMb = serviceInfoSnapshot;
                 }
+
             }
         }
 
@@ -443,34 +460,38 @@ public class Main extends PluginBase implements Listener {
 
     public void findNewBb() {
         this.fillingBb = null;
-        Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
-        if (CloudNetDriver.getInstance() != null && services != null) {
-            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
-                if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("BuildBattle")) {
-                    if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("LOBBY")) {
-                        fillingBb = serviceInfoSnapshot;
-                    } else {
-                        this.getLogger().warning("State of " + serviceInfoSnapshot.getName() + " " + serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").toString());
-                    }
+        //Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
+
+        for (ServiceInfoSnapshot serviceInfoSnapshot : services.values()) {
+            if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("BuildBattle")) {
+                if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN") || serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("LOBBY")) {
+                    fillingBb = serviceInfoSnapshot;
                 }
             }
         }
+
     }
 
 
     public void findNewSw() {
         this.fillingSw = null;
-        Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
-        if (CloudNetDriver.getInstance() != null && services != null) {
-            for (ServiceInfoSnapshot serviceInfoSnapshot : services) {
-                if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("Skywars")) {
-                    if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN")) {
-                        fillingSw = serviceInfoSnapshot;
-                    }
+        //Collection<ServiceInfoSnapshot> services = CloudNetDriver.getInstance().getCloudServiceProvider().getCloudServices();
+        for (ServiceInfoSnapshot serviceInfoSnapshot : services.values()) {
+            this.getLogger().warning("name is " + serviceInfoSnapshot.getName());
+            this.getLogger().warning("propertyis is " + serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse(""));
+            if (serviceInfoSnapshot.isConnected() && serviceInfoSnapshot.getName().contains("Skywars")) {
+                if (serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("OPEN") || serviceInfoSnapshot.getProperty(BridgeServiceProperty.STATE).orElse("").contains("LOBBY")) {
+                    fillingSw = serviceInfoSnapshot;
                 }
+
             }
         }
     }
 
+
+    @EventListener
+    public void handleServiceStop(CloudServiceStopEvent event) {
+        this.services.remove(event.getServiceInfo().getName());
+    }
 
 }
